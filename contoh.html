@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Headroom.ai — Enterprise Job Aggregator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            // Konfigurasi warna shadcn/ui premium mapping ke utility tailwind
+            border: 'var(--border)',
+            input: 'var(--input)',
+            background: 'var(--background)',
+            foreground: 'var(--foreground)',
+            primary: {
+              DEFAULT: 'var(--primary)',
+              foreground: 'var(--primary-foreground)',
+            },
+            muted: {
+              DEFAULT: 'var(--muted)',
+              foreground: 'var(--muted-foreground)',
+            },
+            card: {
+              DEFAULT: 'var(--card)',
+              foreground: 'var(--card-foreground)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Mapping Variabel CSS Shadcn/ui */
+    :root {
+      --background: #fafafa;
+      --foreground: #0f172a;
+      --card: #ffffff;
+      --card-foreground: #0f172a;
+      --primary: #2563eb;
+      --primary-foreground: #ffffff;
+      --muted: #f1f5f9;
+      --muted-foreground: #64748b;
+      --border: #e2e8f0;
+      --input: #f1f5f9;
+    }
+
+    /* Premium Slate Dark Mode (No-Slop, High-Contrast) */
+    .dark {
+      --background: #0b0f19; /* Deep Slate Navy Blue (Bukan hitam pekat #000) */
+      --foreground: #f8fafc;
+      --card: #111827;       /* Lebih terang sedikit dari bg untuk efek elevasi 3D */
+      --card-foreground: #f8fafc;
+      --primary: #3b82f6;    /* Biru sedikit lebih terang untuk aksesibilitas di layar gelap */
+      --primary-foreground: #ffffff;
+      --muted: #1f2937;
+      --muted-foreground: #9ca3af;
+      --border: #1f2937;
+      --input: #111827;
+    }
+    
+    .transition-theme {
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+  </style>
+</head>
+<body class="bg-background text-foreground transition-theme antialiased font-sans min-h-screen">
+
+  <nav class="bg-card border-b border-border sticky top-0 z-50 transition-theme">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2 font-bold tracking-tight text-foreground text-sm">
+        <i class="ph-bold ph-terminal-window text-primary text-base"></i>
+        HEADROOM<span class="text-muted-foreground/60">.AI</span>
+      </div>
+      
+      <div class="flex items-center gap-6">
+        <button id="theme-toggle" class="w-8 h-8 flex items-center justify-center rounded-md border border-border hover:bg-muted text-foreground transition-all">
+          <i id="theme-icon" class="ph-bold ph-moon text-base"></i>
+        </button>
+        <span class="hidden sm:flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> API Connected
+        </span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-4 py-10 space-y-8">
+    
+    <header class="space-y-2 max-w-3xl">
+      <h1 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl transition-theme">
+        Find Your Next Career Move
+      </h1>
+      <p class="text-sm text-muted-foreground transition-theme leading-relaxed">
+        Aggregate and filter premium developer opportunities across <span class="text-foreground font-semibold">Indeed</span> and <span class="text-foreground font-semibold">Jobstreet</span> through a single clean interface.
+      </p>
+    </header>
+
+    <section class="bg-card border border-border shadow-sm rounded-xl overflow-hidden transition-theme">
+      <form class="p-5 space-y-4" onsubmit="event.preventDefault();">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div class="md:col-span-5 relative">
+            <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+            <input type="text" placeholder="Job title, keywords, or technology stack" value="Software Engineer" class="w-full pl-9 pr-3 py-2 bg-input border border-border text-foreground rounded-lg text-sm focus:outline-none focus:border-muted-foreground/50 transition-theme">
+          </div>
+
+          <div class="md:col-span-4 relative">
+            <i class="ph-bold ph-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+            <input type="text" placeholder="City, state, or 'Remote'" value="Jakarta, Indonesia" class="w-full pl-9 pr-3 py-2 bg-input border border-border text-foreground rounded-lg text-sm focus:outline-none focus:border-muted-foreground/50 transition-theme">
+          </div>
+
+          <button type="submit" class="md:col-span-3 bg-primary text-primary-foreground font-medium text-sm py-2 px-4 rounded-lg hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-2">
+            <i class="ph-bold ph-funnel text-xs"></i>
+            Execute Query
+          </button>
+        </div>
+
+        <div class="pt-3 border-t border-border flex flex-wrap items-center gap-6 text-xs text-muted-foreground font-medium transition-theme">
+          <div class="flex items-center gap-2">
+            <span>Data Sources:</span>
+            <select class="bg-card border border-border text-foreground rounded-md px-2 py-1 focus:outline-none focus:border-muted-foreground/50 cursor-pointer font-semibold transition-theme">
+              <option>All Platforms (Indeed + Jobstreet)</option>
+              <option>Indeed Only</option>
+              <option>Jobstreet Only</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span>Batch Size Limit:</span>
+            <input type="number" value="10" min="1" max="50" class="w-16 bg-card border border-border text-foreground rounded-md px-2 py-1 text-center font-semibold focus:outline-none focus:border-muted-foreground/50 transition-theme">
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="border border-border bg-card rounded-xl p-4 shadow-sm transition-theme">
+        <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Active Index</span>
+        <div class="text-2xl font-bold text-foreground tracking-tight transition-theme">10,249 <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/30 px-1.5 py-0.5 rounded ml-1">+12%</span></div>
+      </div>
+      
+      <div class="border border-border bg-card rounded-xl p-4 shadow-sm transition-theme">
+        <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Monitored Inboxes</span>
+        <div class="text-2xl font-bold text-foreground tracking-tight transition-theme">2 Platforms <span class="text-[10px] text-muted-foreground font-mono block mt-0.5 font-normal">INDEED_ID, JOBSTREET_ID</span></div>
+      </div>
+
+      <div class="border border-border bg-card rounded-xl p-4 shadow-sm transition-theme">
+        <span class="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">Sync Engine Status</span>
+        <div class="text-2xl font-bold text-foreground tracking-tight flex items-center gap-1.5 transition-theme">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 block"></span>
+          <span class="text-base font-semibold text-foreground/90">Operational</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div class="flex items-center justify-between border-b border-border pb-2 transition-theme">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Query Stream Results (1)</h2>
+        <span class="text-xs font-mono bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded transition-theme">FILTER_MATCH: SUCCESS</span>
+      </div>
+
+      <div class="space-y-3">
+        <div class="bg-card border border-border hover:border-muted-foreground/30 shadow-sm transition-all rounded-xl p-5">
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-base font-bold text-foreground hover:text-primary transition-colors cursor-pointer">Full Stack Web Developer</h3>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground font-medium mt-1 transition-theme">
+                <span class="text-foreground font-semibold flex items-center gap-1"><i class="ph ph-buildings"></i> Safran Electronics & Defense</span>
+                <span class="text-muted-foreground/40">•</span>
+                <span class="flex items-center gap-1"><i class="ph ph-map-pin"></i> Bandung, West Java (Hybrid)</span>
+              </div>
+            </div>
+            <span class="self-start text-[10px] font-mono font-bold tracking-wider bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded uppercase transition-theme">Jobstreet</span>
+          </div>
+          
+          <p class="text-xs text-muted-foreground leading-relaxed mb-4 max-w-4xl transition-theme">
+            Analis dan kembangkan arsitektur sistem manajemen kualitas berbasis web. Menangani optimasi database relasional, skalabilitas API endpoint, serta integrasi sistem otomasi internal menggunakan ekosistem React dan Node.js.
+          </p>
+          
+          <div class="flex items-center justify-between pt-3.5 border-t border-border text-xs transition-theme">
+            <span class="text-muted-foreground font-mono">Timestamp: 23-06-2026</span>
+            <div class="flex items-center gap-2">
+              <a href="#" class="border border-border text-foreground hover:bg-muted font-medium px-3 py-1.5 rounded-md transition-all">Source Post ↗</a>
+              <a href="#" class="bg-primary text-primary-foreground font-medium px-3 py-1.5 rounded-md hover:opacity-90 transition-all shadow-sm">Apply</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const html = document.documentElement;
+    const toggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+
+    // Cek preferensi sistem atau local storage komputer user
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      html.classList.add('dark');
+      themeIcon.className = 'ph-bold ph-sun text-base';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        themeIcon.className = 'ph-bold ph-moon text-base';
+      } else {
+        html.classList.add('dark');
+        themeIcon.className = 'ph-bold ph-sun text-base';
+      }
+    });
+  </script>
+</body>
+</html>

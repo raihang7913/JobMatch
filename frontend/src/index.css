@@ -1,0 +1,446 @@
+@import "@fontsource-variable/geist";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* === HEADROOM.AI Light Mode — exact mapping from contoh.html === */
+    --background: 250 250 250;       /* #fafafa */
+    --foreground: 15 23 42;          /* #0f172a slate-900 */
+
+    --card: 255 255 255;             /* #ffffff */
+    --card-foreground: 15 23 42;
+
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+
+    --primary: 37 99 235;            /* #2563eb blue-600 */
+    --primary-foreground: 255 255 255;
+
+    --secondary: 241 245 249;        /* #f1f5f9 slate-100 */
+    --secondary-foreground: 15 23 42;
+
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139; /* #64748b slate-500 */
+
+    --accent: 241 245 249;
+    --accent-foreground: 15 23 42;
+
+    --destructive: 239 68 68;        /* red-500 */
+    --destructive-foreground: 255 255 255;
+
+    --success: 16 185 129;            /* #10b981 emerald-500 */
+    --success-foreground: 255 255 255;
+
+    --border: 226 232 240;           /* #e2e8f0 slate-200 */
+    --input: 241 245 249;
+    --ring: 148 163 184;             /* slate-400 */
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* === HEADROOM.AI Dark Mode — exact mapping from contoh.html === */
+    --background: 11 15 25;          /* #0b0f19 deep slate navy */
+    --foreground: 248 250 252;       /* #f8fafc slate-50 */
+
+    --card: 17 24 39;                /* #111827 gray-900 */
+    --card-foreground: 248 250 252;
+
+    --popover: 17 24 39;
+    --popover-foreground: 248 250 252;
+
+    --primary: 59 130 246;           /* #3b82f6 blue-500 */
+    --primary-foreground: 255 255 255;
+
+    --secondary: 31 41 55;           /* #1f2937 gray-800 */
+    --secondary-foreground: 248 250 252;
+
+    --muted: 31 41 55;
+    --muted-foreground: 156 163 175; /* #9ca3af gray-400 */
+
+    --accent: 31 41 55;
+    --accent-foreground: 248 250 252;
+
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
+
+    --success: 16 185 129;
+    --success-foreground: 248 250 252;
+
+    --border: 31 41 55;
+    --input: 17 24 39;
+    --ring: 107 114 128;             /* gray-500 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    @apply antialiased;
+    font-family: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .transition-theme {
+    @apply transition-colors duration-200;
+  }
+  .font-heading {
+    font-family: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* === FOCUS VISIBLE — Accessibility focus rings === */
+@layer base {
+  :focus-visible {
+    outline: 2px solid rgb(var(--primary));
+    outline-offset: 2px;
+  }
+  /* Remove default outline for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* === REDUCED MOTION — Respect user preference === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === MICRO-INTERACTIONS — Subtle card hover lift === */
+@layer utilities {
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+  .card-hover:hover {
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* === SHARED COMPONENT STYLES (ApiKeyModal) === */
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: rgb(var(--card));
+  border: 1px solid rgb(var(--border));
+  border-radius: var(--radius);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgb(var(--border));
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(var(--foreground));
+}
+
+.modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1.5rem;
+  border-top: 1px solid rgb(var(--border));
+}
+
+/* Form Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(var(--foreground));
+}
+
+.input {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid rgb(var(--border));
+  border-radius: 0.5rem;
+  background: rgb(var(--input));
+  color: rgb(var(--foreground));
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgb(var(--primary));
+  box-shadow: 0 0 0 2px rgba(var(--primary), 0.15);
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon input {
+  flex: 1;
+  padding-right: 2.5rem;
+}
+
+.btn-icon-inline {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: rgb(var(--muted-foreground));
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.btn-icon-inline:hover {
+  color: rgb(var(--foreground));
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: rgb(var(--primary));
+  color: rgb(var(--primary-foreground));
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: rgb(var(--secondary));
+  color: rgb(var(--secondary-foreground));
+}
+
+.btn-secondary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-danger {
+  background: rgb(var(--destructive));
+  color: rgb(var(--destructive-foreground));
+}
+
+.btn-danger:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: rgb(var(--muted-foreground));
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.btn-icon:hover {
+  color: rgb(var(--foreground));
+}
+
+/* Info Box */
+.info-box {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(var(--primary), 0.1);
+  border: 1px solid rgba(var(--primary), 0.2);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.info-box strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: rgb(var(--foreground));
+}
+
+.info-box p {
+  margin: 0;
+  color: rgb(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+/* Test Result */
+.test-result {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.test-result.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(34, 197, 94);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.test-result.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Error Message */
+.error-message {
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 0.5rem;
+  color: rgb(239, 68, 68);
+  font-size: 0.875rem;
+}
+
+/* Pricing Info */
+.pricing-info {
+  font-size: 0.875rem;
+}
+
+.pricing-info strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgb(var(--foreground));
+}
+
+.pricing-info ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: rgb(var(--muted-foreground));
+}
+
+.pricing-info li {
+  margin-bottom: 0.25rem;
+}
+
+/* API Key Links */
+.api-key-links {
+  font-size: 0.875rem;
+}
+
+.api-key-links strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgb(var(--foreground));
+}
+
+.api-key-links ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.api-key-links li {
+  margin-bottom: 0.25rem;
+}
+
+.api-key-links a {
+  color: rgb(var(--primary));
+  text-decoration: none;
+}
+
+.api-key-links a:hover {
+  text-decoration: underline;
+}
+
+/* Toggle Group */
+.toggle-group {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.25rem;
+  background: rgb(var(--muted));
+  border-radius: 0.5rem;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: rgb(var(--muted-foreground));
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background: rgb(var(--card));
+  color: rgb(var(--foreground));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}

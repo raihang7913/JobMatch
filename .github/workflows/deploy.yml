@@ -1,0 +1,56 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cloudflared
+        run: |
+          curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+          chmod +x /usr/local/bin/cloudflared
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy via Cloudflare Tunnel
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -o ProxyCommand="cloudflared access ssh --hostname ssh.muu.my.id" \
+              -i ~/.ssh/deploy_key \
+              raihan@ssh.muu.my.id << 'EOF'
+            set -e
+            cd ~/job-search-app
+            
+            echo "Pulling latest code..."
+            git pull origin main
+            
+            echo "Setting up backend..."
+            cd backend
+            python3 -m venv venv || true
+            source venv/bin/activate
+            pip install -r requirements.txt -q
+            
+            echo "Restarting backend..."
+            pkill -f "python main.py" || true
+            nohup python main.py > /dev/null 2>&1 &
+            
+            echo "Setting up frontend..."
+            cd ../frontend
+            npm install --silent
+            npm run build
+            
+            echo "Restarting frontend..."
+            pkill -f "serve -s dist" || true
+            npx serve -s dist -l 3000 > /dev/null 2>&1 &
+            
+            echo "Deploy complete! ✅"
+          EOF

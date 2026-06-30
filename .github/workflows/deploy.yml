@@ -28,7 +28,7 @@ jobs:
               -i ~/.ssh/deploy_key \
               raihan@ssh.muu.my.id << 'DEPLOY'
             echo "=== Starting deploy ==="
-            
+
             # Clone repo if not exists
             if [ ! -d ~/job-search-app ]; then
               echo "Cloning repo..."
@@ -40,31 +40,30 @@ jobs:
             echo "Pulling latest code..."
             git pull origin main
 
-            # Check Python version
-            echo "Python version:"
-            python3 --version
+            # Install Node.js if not present
+            if ! command -v npm &> /dev/null; then
+              echo "Installing Node.js..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt install -y nodejs
+            fi
+
+            echo "Node version: $(node --version)"
+            echo "NPM version: $(npm --version)"
 
             # Backend
             echo "=== Setting up backend ==="
             cd backend
-            
-            # Remove old venv if broken
             rm -rf venv
-            
-            # Create fresh venv
             python3 -m venv venv
-            source venv/bin/activate
-            
-            echo "Installing pip..."
-            pip install --upgrade pip -q
-            pip install -r requirements.txt -q
+            ./venv/bin/pip install --upgrade pip -q
+            ./venv/bin/pip install -r requirements.txt -q
 
             echo "Restarting backend..."
             pkill -f "python main.py" || true
             sleep 2
-            nohup python main.py > /tmp/backend.log 2>&1 &
+            nohup ./venv/bin/python main.py > /tmp/backend.log 2>&1 &
             sleep 3
-            curl -s http://localhost:8000/api/stats || echo "Backend not ready yet"
+            curl -s http://localhost:8000/api/stats || echo "Backend check..."
 
             # Frontend
             echo "=== Setting up frontend ==="
@@ -79,7 +78,5 @@ jobs:
             sleep 3
 
             echo "=== Deploy complete! ✅ ==="
-            echo "Backend: http://localhost:8000"
-            echo "Frontend: http://localhost:3000"
             ss -tlnp | grep -E "8000|3000"
           DEPLOY

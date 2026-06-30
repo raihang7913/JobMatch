@@ -26,31 +26,44 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
               -o ProxyCommand="cloudflared access ssh --hostname ssh.muu.my.id" \
               -i ~/.ssh/deploy_key \
-              raihan@ssh.muu.my.id << 'EOF'
+              raihan@ssh.muu.my.id << 'DEPLOY'
             set -e
+
+            # Clone repo if not exists
+            if [ ! -d ~/job-search-app ]; then
+              echo "Cloning repo..."
+              cd ~
+              git clone https://github.com/raihang7913/JobMatch.git job-search-app
+            fi
+
             cd ~/job-search-app
-            
             echo "Pulling latest code..."
             git pull origin main
-            
+
+            # Backend
             echo "Setting up backend..."
             cd backend
             python3 -m venv venv || true
             source venv/bin/activate
             pip install -r requirements.txt -q
-            
+
             echo "Restarting backend..."
             pkill -f "python main.py" || true
+            sleep 1
             nohup python main.py > /dev/null 2>&1 &
-            
+
+            # Frontend
             echo "Setting up frontend..."
             cd ../frontend
             npm install --silent
             npm run build
-            
+
             echo "Restarting frontend..."
             pkill -f "serve -s dist" || true
-            npx serve -s dist -l 3000 > /dev/null 2>&1 &
-            
+            sleep 1
+            nohup npx serve -s dist -l 3000 > /dev/null 2>&1 &
+
             echo "Deploy complete! ✅"
-          EOF
+            echo "Backend: http://localhost:8000"
+            echo "Frontend: http://localhost:3000"
+          DEPLOY

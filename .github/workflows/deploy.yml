@@ -27,8 +27,8 @@ jobs:
               -o ProxyCommand="cloudflared access ssh --hostname ssh.muu.my.id" \
               -i ~/.ssh/deploy_key \
               raihan@ssh.muu.my.id << 'DEPLOY'
-            set -e
-
+            echo "=== Starting deploy ==="
+            
             # Clone repo if not exists
             if [ ! -d ~/job-search-app ]; then
               echo "Cloning repo..."
@@ -40,33 +40,46 @@ jobs:
             echo "Pulling latest code..."
             git pull origin main
 
-            # Backend
-            echo "Setting up backend..."
-            cd backend
-            sudo apt update > /dev/null 2>&1
-            sudo apt install -y python3-venv python3-pip > /dev/null 2>&1 || true
+            # Check Python version
+            echo "Python version:"
             python3 --version
-            python3 -m venv venv || true
+
+            # Backend
+            echo "=== Setting up backend ==="
+            cd backend
+            
+            # Remove old venv if broken
+            rm -rf venv
+            
+            # Create fresh venv
+            python3 -m venv venv
             source venv/bin/activate
+            
+            echo "Installing pip..."
+            pip install --upgrade pip -q
             pip install -r requirements.txt -q
 
             echo "Restarting backend..."
             pkill -f "python main.py" || true
-            sleep 1
-            nohup python main.py > /dev/null 2>&1 &
+            sleep 2
+            nohup python main.py > /tmp/backend.log 2>&1 &
+            sleep 3
+            curl -s http://localhost:8000/api/stats || echo "Backend not ready yet"
 
             # Frontend
-            echo "Setting up frontend..."
+            echo "=== Setting up frontend ==="
             cd ../frontend
             npm install --silent
             npm run build
 
             echo "Restarting frontend..."
             pkill -f "serve -s dist" || true
-            sleep 1
-            nohup npx serve -s dist -l 3000 > /dev/null 2>&1 &
+            sleep 2
+            nohup npx serve -s dist -l 3000 > /tmp/frontend.log 2>&1 &
+            sleep 3
 
-            echo "Deploy complete! ✅"
+            echo "=== Deploy complete! ✅ ==="
             echo "Backend: http://localhost:8000"
             echo "Frontend: http://localhost:3000"
+            ss -tlnp | grep -E "8000|3000"
           DEPLOY

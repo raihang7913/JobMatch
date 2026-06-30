@@ -43,7 +43,9 @@ jobs:
             # Backend
             echo "Setting up backend..."
             cd backend
-            sudo apt install -y python3.12-venv > /dev/null 2>&1 || true
+            sudo apt update > /dev/null 2>&1
+            sudo apt install -y python3-venv python3-pip > /dev/null 2>&1 || true
+            python3 --version
             python3 -m venv venv || true
             source venv/bin/activate
             pip install -r requirements.txt -q

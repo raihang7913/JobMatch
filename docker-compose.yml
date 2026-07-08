@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    container_name: jobmatch-backend
+    container_name: gaweai-backend
     restart: unless-stopped
     ports:
       - "8001:8001"
@@ -10,7 +10,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: jobmatch-frontend
+    container_name: gaweai-frontend
     restart: unless-stopped
     ports:
       - "3001:3000"

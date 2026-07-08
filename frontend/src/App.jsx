@@ -160,7 +160,7 @@ function App() {
               className="flex items-center gap-2 font-bold tracking-tight text-foreground text-small"
             >
               <TerminalWindow size={18} weight="bold" className="text-primary-600" />
-              JOBMATCH<span className="text-muted-foreground/60">.ID</span>
+              GAWE<span className="text-muted-foreground/60">AI</span>
             </Link>
 
             <div className="flex items-center gap-6">

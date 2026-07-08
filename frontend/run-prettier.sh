@@ -1,1 +1,0 @@
-cd "/c/Users/Han/Desktop/KERJA/job-search-app/frontend" && npx prettier --write "src/**/*.jsx" "src/**/*.js" "src/**/*.css" 2>&1

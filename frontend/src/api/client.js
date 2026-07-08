@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { toast } from 'sonner'
+import { clearCache, getCached, setCache } from './cache'
 
 const API_BASE_URL = 'http://localhost:8000'
 
@@ -59,16 +60,21 @@ export const uploadCV = async (file) => {
       'Content-Type': 'multipart/form-data'
     }
   })
+  clearCache('cvs_list')
   return response.data
 }
 
 export const loadDemoCV = async () => {
   const response = await api.post('/api/demo')
+  clearCache('cvs_list')
   return response.data
 }
 
 export const getCVs = async () => {
+  const cached = getCached('cvs_list', 60000) // 1 min cache
+  if (cached) return cached
   const response = await api.get('/api/cvs')
+  setCache('cvs_list', response.data)
   return response.data
 }
 
@@ -105,6 +111,15 @@ export const optimizeCV = async (cvId, jobData) => {
     job_url: jobData.url || ''
   })
   return response.data
+}
+
+export const generateTailoredCV = async (cvId, payload) => {
+  const response = await api.post(`/api/generate-tailored-cv/${cvId}`, payload)
+  return response.data
+}
+
+export const downloadGeneratedCVUrl = (filename) => {
+  return `${API_BASE_URL}/api/download-generated-cv/${encodeURIComponent(filename)}`
 }
 
 export const downloadCVUrl = (cvId) => {

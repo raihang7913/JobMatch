@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import SearchPage from './pages/SearchPage'
-import CVPage from './pages/CVPage'
-import MatchPage from './pages/MatchPage'
-import OptimizePage from './pages/OptimizePage'
 import { TerminalWindow, Sun, Moon, List, X } from '@phosphor-icons/react'
 
-function Navigation({ cvId }) {
+// ponytail: lazy-load pages for route-level code splitting
+const SearchPage = lazy(() => import('./pages/SearchPage'))
+const CVPage = lazy(() => import('./pages/CVPage'))
+const MatchPage = lazy(() => import('./pages/MatchPage'))
+const OptimizePage = lazy(() => import('./pages/OptimizePage'))
+
+function Navigation({ cvReady }) {
   const location = useLocation()
   const isActive = (path) => location.pathname === path
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -43,7 +45,7 @@ function Navigation({ cvId }) {
           {[
             ['/', 'Search Jobs', null],
             ['/cv', 'Upload CV', null],
-            ['/match', 'Match Jobs', cvId],
+            ['/match', 'Match Jobs', cvReady],
             ['/optimize', 'Optimize CV', null],
           ].map(([path, label, indicator]) => (
             <Link
@@ -67,7 +69,7 @@ function Navigation({ cvId }) {
             {[
               ['/', 'Search Jobs', null],
               ['/cv', 'Upload CV', null],
-              ['/match', 'Match Jobs', cvId],
+              ['/match', 'Match Jobs', cvReady],
               ['/optimize', 'Optimize CV', null],
             ].map(([path, label, indicator]) => (
               <Link
@@ -171,16 +173,18 @@ function App() {
         </nav>
 
         {/* Sub Navigation */}
-        <Navigation cvId={cvId} />
+        <Navigation cvReady={Boolean(cvId || cvInfo)} />
 
         {/* Main Content */}
         <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
-          <Routes>
-            <Route path="/" element={<SearchPage />} />
-            <Route path="/cv" element={<CVPage onUpload={handleCVUpload} cvInfo={cvInfo} />} />
-            <Route path="/match" element={<MatchPage cvId={cvId} cvInfo={cvInfo} />} />
-            <Route path="/optimize" element={<OptimizePage />} />
-          </Routes>
+          <Suspense fallback={<div className="flex items-center justify-center py-20 text-muted-foreground text-sm">Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<SearchPage />} />
+              <Route path="/cv" element={<CVPage onUpload={handleCVUpload} cvInfo={cvInfo} />} />
+              <Route path="/match" element={<MatchPage cvId={cvId} cvInfo={cvInfo} />} />
+              <Route path="/optimize" element={<OptimizePage />} />
+            </Routes>
+          </Suspense>
         </div>
       </div>
     </Router>

@@ -1,4 +1,4 @@
-import { CheckCircle, Copy, ArrowRight } from '@phosphor-icons/react'
+import { CheckCircle, Copy, ArrowRight, DownloadSimple } from '@phosphor-icons/react'
 
 export default function OptimizationResults({
   result,
@@ -7,8 +7,11 @@ export default function OptimizationResults({
   onToggleSuggestion,
   onApplyAll,
   onCopyOptimized,
+  onGenerateTailored,
+  generatingTailored = false,
 }) {
   if (!result) return null
+  const cvData = originalCv?.parsed_data || originalCv || {}
 
   return (
     <div className="flex flex-col gap-6">
@@ -24,12 +27,21 @@ export default function OptimizationResults({
             Apply All
           </button>
           <button
+            aria-label="Generate tailored CV file"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-medium text-sm py-2 px-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
+            onClick={onGenerateTailored}
+            disabled={generatingTailored}
+          >
+            <DownloadSimple size={20} />
+            {generatingTailored ? 'Generating...' : 'Generate Tailored CV'}
+          </button>
+          <button
             aria-label="Copy optimized CV to clipboard"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-medium text-sm py-2 px-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+            className="inline-flex items-center gap-2 border border-border text-foreground font-medium text-sm py-2 px-4 rounded-lg hover:bg-muted active:scale-[0.98] transition-all"
             onClick={onCopyOptimized}
           >
             <Copy size={20} />
-            Copy Optimized CV
+            Copy
           </button>
         </div>
       </div>
@@ -40,7 +52,7 @@ export default function OptimizationResults({
           <h3 className="text-lg font-semibold text-foreground">📝 Perbaikan Pengalaman Kerja</h3>
           {result.experience_improvements.map((improvement, idx) => {
             const isApplied = appliedSuggestions.has(`experience-${idx}`)
-            const originalExp = originalCv.experience?.[improvement.index]
+            const originalExp = cvData.experience?.[improvement.index]
 
             return (
               <div

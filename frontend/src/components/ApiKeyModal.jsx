@@ -91,6 +91,7 @@ export default function SetupModal({ isOpen, onClose, onSuccess }) {
       setNrApiKey('')
       setTestResult(null)
       setError('')
+      onSuccess?.()
       onClose()
     }
   }

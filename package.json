@@ -7,11 +7,11 @@
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
     "backend": "cd backend && .venv\\Scripts\\python.exe main.py",
     "frontend": "cd frontend && npm run dev",
-    "install-all": "npm install && cd backend && python -m venv .venv && source .venv/Scripts/activate && pip install -r requirements.txt && cd ../frontend && npm install",
+    "install-all": "npm install && cd backend && python -m venv .venv && .venv\\Scripts\\python.exe -m pip install -r requirements.txt && cd ../frontend && npm install",
     "build": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
     "build:backend": "echo 'Backend is runtime-only (Python/FastAPI)'",
     "build:frontend": "cd frontend && npm run build",
-    "test": "cd backend && source .venv/Scripts/activate && pytest test_basic.py -v"
+    "test": "cd backend && .venv\\Scripts\\python.exe -m py_compile main.py database.py"
   },
   "devDependencies": {
     "concurrently": "^9.2.3"

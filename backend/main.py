@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))  # job-search-app/
 
 from database import init_db, get_db, CV, JobSearch, Job
-from job_search_common import parse_cv, match_jobs_with_cv, analyze_job_fit, optimize_cv_for_job
+from job_search_common import parse_cv, match_jobs_with_cv, analyze_job_fit, optimize_cv_for_job, generate_tailored_cv
 
 logger = logging.getLogger("jobsearch")
 
@@ -28,7 +28,8 @@ app = FastAPI(title="Job Search API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    # Vite auto-increments ports when 5173 is busy.
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -213,6 +214,56 @@ class OptimizeCVRequest(BaseModel):
         v = v.strip()
         if len(v) > 200:
             raise ValueError('job_title must be at most 200 characters')
+        return v
+
+
+class TailoredExperienceSuggestion(BaseModel):
+    index: int
+    description: str
+    original: str = ""
+
+    @field_validator('description')
+    @classmethod
+    def validate_description(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) > 3000:
+            raise ValueError('experience description must be at most 3000 characters')
+        return v
+
+
+class TailoredSuggestions(BaseModel):
+    summary: str = ""
+    skills: List[str] = []
+    experience: List[TailoredExperienceSuggestion] = []
+
+    @field_validator('summary')
+    @classmethod
+    def validate_summary(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) > 3000:
+            raise ValueError('summary must be at most 3000 characters')
+        return v
+
+    @field_validator('skills')
+    @classmethod
+    def validate_skills(cls, v: List[str]) -> List[str]:
+        if len(v) > 100:
+            raise ValueError('skills must contain at most 100 items')
+        return [s.strip()[:100] for s in v if s and s.strip()]
+
+
+class GenerateTailoredCVRequest(BaseModel):
+    job_title: str = ""
+    company: str = ""
+    format: str = "pdf"
+    applied_suggestions: TailoredSuggestions
+
+    @field_validator('format')
+    @classmethod
+    def validate_format(cls, v: str) -> str:
+        v = v.strip().lower()
+        if v not in ('pdf', 'docx'):
+            raise ValueError('format must be pdf or docx')
         return v
 
 
@@ -771,6 +822,47 @@ def load_demo(session_id: str = Depends(get_session_id), db: Session = Depends(g
     }
 
 
+@app.post("/api/generate-tailored-cv/{cv_id}")
+def generate_tailored_cv_file(cv_id: int, request: GenerateTailoredCVRequest, session_id: str = Depends(get_session_id), db: Session = Depends(get_db)):
+    cv = db.query(CV).filter(CV.id == cv_id, CV.session_id == session_id).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV not found")
+
+    output_dir = uploads_dir / "generated" / session_id
+    suggestions = request.applied_suggestions.model_dump()
+    try:
+        result = generate_tailored_cv(
+            cv.parsed_dict,
+            suggestions,
+            str(output_dir),
+            job_title=request.job_title,
+            output_format=request.format,
+            template_path=cv.file_path,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Tailored CV generation failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate tailored CV")
+
+    return {
+        "filename": result["filename"],
+        "format": result["format"],
+        "download_url": f"/api/download-generated-cv/{result['filename']}"
+    }
+
+
+@app.get("/api/download-generated-cv/{filename}")
+def download_generated_cv(filename: str, session_id: str = Depends(get_session_id)):
+    if Path(filename).name != filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    file_path = uploads_dir / "generated" / session_id / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    media_type = 'application/pdf' if filename.endswith('.pdf') else 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    return FileResponse(path=str(file_path), media_type=media_type, filename=filename)
+
+
 @app.get("/api/download-cv/{cv_id}")
 def download_cv(cv_id: int, session_id: str = Depends(get_session_id), db: Session = Depends(get_db)):
     cv = db.query(CV).filter(CV.id == cv_id, CV.session_id == session_id).first()
@@ -881,3 +973,8 @@ def get_demo_jobs():
         ],
         "total": 10
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

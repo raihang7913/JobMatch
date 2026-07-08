@@ -128,7 +128,7 @@ function CVPage({ onUpload, cvInfo }) {
     setError(null)
     try {
       const data = await loadDemoCV()
-      onUpload(null, data)
+      onUpload(data.cv_id, data)
       toast.success('Sample CV loaded! Ready to explore.')
     } catch (err) {
       setError(err.message || 'Failed to load demo CV')
@@ -182,6 +182,9 @@ function CVPage({ onUpload, cvInfo }) {
                   <span className="text-muted-foreground"> or drag and drop</span>
                 </div>
                 <p className="text-xs text-muted-foreground">PDF or DOCX (max 10MB)</p>
+                <p className="text-xs text-primary font-medium">
+                  Rekomendasi: upload DOCX kalau mau hasil tailoring paling rapi. PDF tetap bisa, tapi akan dibuat ulang sebagai ATS CV.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">

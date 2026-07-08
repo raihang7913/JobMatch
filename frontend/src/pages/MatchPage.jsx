@@ -19,10 +19,13 @@ function MatchPage({ cvId, cvInfo }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
 
+  const cvReady = Boolean(cvId || cvInfo)
+  const activeCvId = cvId || cvInfo?.cv_id || null
+
   const handleMatch = async (e, page = 1) => {
     e?.preventDefault()
 
-    if (!cvId) {
+    if (!activeCvId) {
       setError('Please upload your CV first')
       return
     }
@@ -37,7 +40,7 @@ function MatchPage({ cvId, cvInfo }) {
     try {
       const offset = (page - 1) * limit
       const data = await matchJobs(
-        cvId,
+        activeCvId,
         query.trim(),
         location.trim(),
         source,
@@ -80,7 +83,7 @@ function MatchPage({ cvId, cvInfo }) {
       </header>
 
       {/* CV Status */}
-      {!cvId && (
+      {!cvReady && (
         <div className="bg-card border border-border rounded-xl p-12 text-center">
           <Target size={32} className="text-muted-foreground mx-auto mb-3" />
           <h3 className="text-base font-semibold text-foreground mb-1">No CV Detected</h3>
@@ -149,7 +152,7 @@ function MatchPage({ cvId, cvInfo }) {
 
             <button
               type="submit"
-              disabled={loading || !cvId}
+              disabled={loading || !cvReady}
               className="md:col-span-3 bg-primary text-primary-foreground font-medium text-sm py-2 px-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Target size={14} weight="bold" />
@@ -356,6 +359,10 @@ function MatchPage({ cvId, cvInfo }) {
                       </a>
                       <Link
                         to="/optimize"
+                        onClick={() => {
+                          // ponytail: save selected job so OptimizePage auto-selects it
+                          localStorage.setItem('optimizeJobIndex', String(index))
+                        }}
                         aria-label={`Optimize CV for ${job.title}`}
                         className="border border-primary text-primary font-medium px-3 py-1.5 rounded-md hover:bg-primary/10 transition-all"
                       >
@@ -410,7 +417,7 @@ function MatchPage({ cvId, cvInfo }) {
       {loading && <JobCardSkeletonList count={3} showScoreBar showSkills />}
 
       {/* Welcome Empty State — CV loaded but no search yet */}
-      {!loading && matchedJobs.length === 0 && !query && cvId && (
+      {!loading && matchedJobs.length === 0 && !query && cvReady && (
         <EmptyState
           icon={Target}
           title="Ready to Match"

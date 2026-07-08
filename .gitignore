@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.env.example
 __pycache__/
 *.pyc
 uploads/
@@ -9,4 +10,8 @@ backend/*.db
 .vscode/
 .idea/
 .venv/
-node_modules/
+.memories/
+.agents/
+*.md
+*.bat
+*.sh

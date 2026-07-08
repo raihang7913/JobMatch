@@ -14,10 +14,6 @@ import uuid
 import logging
 from pathlib import Path
 from datetime import datetime
-import sys
-
-# ponytail: add parent dir to path for shared lib
-sys.path.insert(0, str(Path(__file__).parent.parent))  # job-search-app/
 
 from database import init_db, get_db, CV, JobSearch, Job
 from job_search_common import parse_cv, match_jobs_with_cv, analyze_job_fit, optimize_cv_for_job, generate_tailored_cv

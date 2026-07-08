@@ -29,54 +29,21 @@ jobs:
               raihan@ssh.muu.my.id << 'DEPLOY'
             echo "=== Starting deploy ==="
 
-            # Clone repo if not exists
-            if [ ! -d ~/job-search-app ]; then
-              echo "Cloning repo..."
-              cd ~
-              git clone https://github.com/raihang7913/JobMatch.git job-search-app
-            fi
-
             cd ~/job-search-app
             echo "Pulling latest code..."
             git pull origin main
 
-            # Install Node.js if not present
-            if ! command -v npm &> /dev/null; then
-              echo "Installing Node.js..."
-              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-              sudo apt install -y nodejs
-            fi
+            echo "=== Building and starting Docker containers ==="
+            docker compose down || true
+            docker compose up -d --build
 
-            echo "Node version: $(node --version)"
-            echo "NPM version: $(npm --version)"
+            sleep 5
+            echo "=== Container status ==="
+            docker compose ps
 
-            # Backend
-            echo "=== Setting up backend ==="
-            cd backend
-            rm -rf venv
-            python3 -m venv venv
-            ./venv/bin/pip install --upgrade pip -q
-            ./venv/bin/pip install -r requirements.txt -q
-
-            echo "Restarting backend..."
-            pkill -f "python main.py" || true
-            sleep 2
-            nohup ./venv/bin/python main.py > /tmp/backend.log 2>&1 &
-            sleep 3
-            curl -s http://localhost:8000/api/stats || echo "Backend check..."
-
-            # Frontend
-            echo "=== Setting up frontend ==="
-            cd ../frontend
-            npm install --silent
-            npm run build
-
-            echo "Restarting frontend..."
-            pkill -f "serve -s dist" || true
-            sleep 2
-            nohup npx serve -s dist -l 3000 > /tmp/frontend.log 2>&1 &
-            sleep 3
+            echo "=== Health check ==="
+            curl -s http://localhost:8001/ || echo "Backend check..."
+            curl -s http://localhost:3001/ | head -1 || echo "Frontend check..."
 
             echo "=== Deploy complete! ✅ ==="
-            ss -tlnp | grep -E "8000|3000"
           DEPLOY

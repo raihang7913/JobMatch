@@ -2,7 +2,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { clearCache, getCached, setCache } from './cache'
 
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = window.location.origin
 
 // ponytail: anonymous session — UUID v4 in localStorage, auto-injected on every request.
 // Upgrade path: swap for JWT/auth when login is added.

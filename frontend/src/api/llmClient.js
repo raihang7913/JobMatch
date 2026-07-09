@@ -4,6 +4,8 @@
  * Both modes use OpenAI-compatible /v1/chat/completions format.
  */
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
 // ── Direct Cloud Provider Config ──────────────────────────────────────────
 
 const DIRECT_PROVIDERS = {

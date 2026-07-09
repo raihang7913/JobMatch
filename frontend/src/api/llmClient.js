@@ -301,19 +301,18 @@ async function testDirectConnection({ provider, apiKey }) {
 }
 
 async function test9RouterConnection({ baseUrl, apiKey }) {
-  // ponytail: use backend proxy to avoid CORS when deployed
+  // ponytail: use /v1/chat/completions for test (models endpoint lacks CORS)
   const url = baseUrl.replace(/\/+$/, '');
   const proxyUrl = API_BASE_URL + '/api/llm-proxy';
   
-  // Test by listing models via proxy
   const resp = await fetch(proxyUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       base_url: url,
       api_key: apiKey,
-      model: 'test',
-      messages: [{ role: 'user', content: 'test' }],
+      model: 'oc/mimo-v2.5-free',
+      messages: [{ role: 'user', content: 'Reply with OK' }],
     }),
   });
 

@@ -771,6 +771,38 @@ def optimize_cv(cv_id: int, request: OptimizeCVRequest, session_id: str = Depend
     return optimization
 
 
+@app.post("/api/llm-proxy")
+async def llm_proxy(request: Request):
+    """Proxy LLM requests to avoid CORS issues when deployed."""
+    body = await request.json()
+    base_url = body.get('base_url', '').rstrip('/')
+    api_key = body.get('api_key', '')
+    model = body.get('model', '')
+    messages = body.get('messages', [])
+    
+    # Fix double /v1/v1
+    if base_url.endswith('/v1'):
+        endpoint = f"{base_url}/chat/completions"
+    else:
+        endpoint = f"{base_url}/v1/chat/completions"
+    
+    headers = {'Content-Type': 'application/json'}
+    if api_key:
+        headers['Authorization'] = f'Bearer {api_key}'
+    
+    try:
+        resp = requests.post(endpoint, headers=headers, json={
+            'model': model,
+            'messages': messages,
+            'temperature': 0.7,
+            'max_tokens': 2000,
+            'stream': False,
+        }, timeout=60)
+        return resp.json()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"LLM proxy error: {str(e)}")
+
+
 @app.post("/api/demo")
 def load_demo(session_id: str = Depends(get_session_id), db: Session = Depends(get_db)):
     demo_data = {

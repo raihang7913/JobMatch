@@ -121,39 +121,30 @@ async function callLLM(systemPrompt, userPrompt) {
     model = config.ninerouter.model;
   }
 
-  const headers = { 'Content-Type': 'application/json' };
-
-  if (config.mode === 'direct' && config.direct.provider === DIRECT_PROVIDERS.CLAUDE) {
-    headers['x-api-key'] = apiKey;
-    headers['anthropic-version'] = '2023-06-01';
-  } else if (apiKey) {
-    headers['Authorization'] = `Bearer ${apiKey}`;
-  }
-
-  const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+  // ponytail: use backend proxy to avoid CORS when deployed
+  const proxyUrl = API_BASE_URL + '/api/llm-proxy';
+  const resp = await fetch(proxyUrl, {
     method: 'POST',
-    headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      base_url: baseUrl,
+      api_key: apiKey,
       model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.7,
-      max_tokens: 2000,
-      stream: false,
     }),
   });
 
-  if (!response.ok) {
-    const errBody = await response.json().catch(() => ({}));
-    const err = new Error(errBody.error?.message || `LLM API error ${response.status}`);
-    err.status = response.status;
+  if (!resp.ok) {
+    const errBody = await resp.json().catch(() => ({}));
+    const err = new Error(errBody.detail || errBody.error?.message || `LLM proxy error ${resp.status}`);
+    err.status = resp.status;
     throw err;
   }
 
-  const data = await response.json();
-  // ponytail: some models return content in 'reasoning' when content is null
+  const data = await resp.json();
   const msg = data.choices[0].message;
   return msg.content || msg.reasoning || JSON.stringify(msg);
 }
@@ -308,20 +299,28 @@ async function testDirectConnection({ provider, apiKey }) {
 }
 
 async function test9RouterConnection({ baseUrl, apiKey }) {
+  // ponytail: use backend proxy to avoid CORS when deployed
   const url = baseUrl.replace(/\/+$/, '');
-  const headers = { 'Content-Type': 'application/json' };
-  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+  const proxyUrl = API_BASE_URL + '/api/llm-proxy';
+  
+  // Test by listing models via proxy
+  const resp = await fetch(proxyUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      base_url: url,
+      api_key: apiKey,
+      model: 'test',
+      messages: [{ role: 'user', content: 'test' }],
+    }),
+  });
 
-  const response = await fetch(`${url}/v1/models`, { headers });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || `HTTP ${response.status}`);
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${resp.status}`);
   }
-
-  const data = await response.json();
-  const models = (data.data || []).map((m) => m.id);
-  return { valid: true, models };
+  
+  return { valid: true };
 }
 
 // ── Storage (Dual-Mode) ───────────────────────────────────────────────────

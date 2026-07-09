@@ -123,30 +123,47 @@ async function callLLM(systemPrompt, userPrompt) {
     model = config.ninerouter.model;
   }
 
-  // ponytail: use backend proxy to avoid CORS when deployed
-  const proxyUrl = API_BASE_URL + '/api/llm-proxy';
-  const resp = await fetch(proxyUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      base_url: baseUrl,
-      api_key: apiKey,
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-    }),
-  });
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ];
 
-  if (!resp.ok) {
-    const errBody = await resp.json().catch(() => ({}));
-    const err = new Error(errBody.detail || errBody.error?.message || `LLM proxy error ${resp.status}`);
-    err.status = resp.status;
-    throw err;
+  let data;
+  if (config.mode === 'ninerouter') {
+    // ponytail: call 9Router directly from browser (it has CORS headers)
+    const url = baseUrl.endsWith('/v1') ? `${baseUrl}/chat/completions` : `${baseUrl}/v1/chat/completions`;
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 2000, stream: false }),
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      const err = new Error(errBody.error?.message || `LLM API error ${resp.status}`);
+      err.status = resp.status;
+      throw err;
+    }
+    data = await resp.json();
+  } else {
+    // Direct cloud API — use backend proxy to avoid CORS
+    const proxyUrl = API_BASE_URL + '/api/llm-proxy';
+    const resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_url: baseUrl, api_key: apiKey, model, messages }),
+    });
+    if (!resp.ok) {
+      const errBody = await resp.json().catch(() => ({}));
+      const err = new Error(errBody.detail || errBody.error?.message || `LLM proxy error ${resp.status}`);
+      err.status = resp.status;
+      throw err;
+    }
+    data = await resp.json();
   }
 
-  const data = await resp.json();
   const msg = data.choices[0].message;
   return msg.content || msg.reasoning || JSON.stringify(msg);
 }
@@ -301,24 +318,25 @@ async function testDirectConnection({ provider, apiKey }) {
 }
 
 async function test9RouterConnection({ baseUrl, apiKey }) {
-  // ponytail: use /v1/chat/completions for test (models endpoint lacks CORS)
+  // ponytail: call 9Router directly from browser (it has CORS headers)
   const url = baseUrl.replace(/\/+$/, '');
-  const proxyUrl = API_BASE_URL + '/api/llm-proxy';
-  
-  const resp = await fetch(proxyUrl, {
+  const endpoint = url.endsWith('/v1') ? `${url}/chat/completions` : `${url}/v1/chat/completions`;
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+  const resp = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
-      base_url: url,
-      api_key: apiKey,
       model: 'oc/mimo-v2.5-free',
       messages: [{ role: 'user', content: 'Reply with OK' }],
+      max_tokens: 5,
     }),
   });
 
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
-    throw new Error(err.detail || `HTTP ${resp.status}`);
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
   }
   
   return { valid: true };

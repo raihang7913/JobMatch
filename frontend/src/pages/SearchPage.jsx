@@ -51,9 +51,9 @@ function SearchPage() {
           Find Your Next Career Move
         </h1>
         <p className="text-body text-muted-foreground leading-relaxed">
-          Temukan dan filter lowongan kerja dari{' '}
-          <span className="text-foreground font-semibold">Jobstreet Indonesia</span> dalam satu
-          interface yang bersih.
+          Search and filter job opportunities from{' '}
+          <span className="text-foreground font-semibold">Jobstreet Indonesia</span> in one
+          clean interface.
         </p>
       </header>
 
